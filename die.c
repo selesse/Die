@@ -11,6 +11,18 @@ int main (int argc, char *argv[]) {
         printErrorMessage(0);
         exit(1);
     }
+    if (!strcmp(argv[1], "abort")) {
+        printf("Abort!\n");
+        #ifdef __WIN32
+        system("shutdown -a");
+        #elif defined __unix__
+        system("sudo shutdown -c");
+        #else
+        // mac -> need to figure this out
+        system("sudo shutdown ");
+        #endif
+        return 0;
+    }
 
     int hours = 0, minutes = 0, seconds = 0;
     char h,m,s;
