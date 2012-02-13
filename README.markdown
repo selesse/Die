@@ -8,6 +8,7 @@ Using die
 ---------
 
 Place 'die' in your %PATH and then:
+
     die 3m40s
 
 or
