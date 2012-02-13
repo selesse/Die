@@ -14,3 +14,7 @@ Place 'die' in your %PATH and then:
 or
 
     die 7h04s
+    
+If you want to cancel your shutdown, use:
+
+    die abort
