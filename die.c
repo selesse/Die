@@ -89,15 +89,17 @@ int main (int argc, char *argv[]) {
     sprintf(number, "%d", (int)(hours*60*60 + minutes*60 + seconds));
     #ifdef __WIN32
     strcpy (command, "shutdown -s -t ");
-    strcat(command, number);
+    #elif defined __unix__
+    strcpy(command, "sudo shutdown -H +");
     #else
     strcpy(command, "sudo shutdown -s +");
-    strcat(command, number);
     #endif
 
+    strcat(command, number);
+
     // debug printing command
-    // printf("%s\n", command);
-    system(command);
+    printf("%s\n", command);
+    //system(command);
 
     return 0;
 }
