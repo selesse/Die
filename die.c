@@ -83,16 +83,20 @@ int main (int argc, char *argv[]) {
     printf("\n");
 
     char number[10];
+    char command[30];
 
     // convert the integer number into a string and append it to "shutdown -s -t"
-    itoa ((int)(hours*60*60 + minutes*60 + seconds), number, 10);
-
-    char command[30];
+    sprintf(number, "%d", (int)(hours*60*60 + minutes*60 + seconds));
+    #ifdef __WIN32
     strcpy (command, "shutdown -s -t ");
     strcat(command, number);
+    #else
+    strcpy(command, "sudo shutdown -s +");
+    strcat(command, number);
+    #endif
 
     // debug printing command
-    //printf("%s\n", command);
+    // printf("%s\n", command);
     system(command);
 
     return 0;
@@ -100,7 +104,7 @@ int main (int argc, char *argv[]) {
 
 void printErrorMessage(int code) {
     if (code == 0) {
-        printf("Error - must pass one argument.\n\tex:\tdie 40m");
+        printf("Error - must pass one argument.\n\tex:\tdie 40m\n");
     }
     if (code == 1) {
         printf("Error - illegal character. Must use h, m, and/or s.\n");
