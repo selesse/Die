@@ -2,12 +2,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define BAD_ARGUMENTS 1
+#define ILLEGAL_CHARACTER 2
+#define ILLEGAL_ORDER 3
+#define DEBUG 0
+
 void printErrorMessage(int code);
 
 int main (int argc, char *argv[]) {
   if (argc != 2) {
-    printErrorMessage(0);
-    exit(1);
+    printErrorMessage(BAD_ARGUMENTS);
+    exit(BAD_ARGUMENTS);
   }
 
   if (!strcmp(argv[1], "abort")) {
@@ -35,12 +40,11 @@ int main (int argc, char *argv[]) {
       sscanf (argv[1], "%d%*c%d%*c%d%*c", &hours, &minutes, &seconds);
     }
     else {
-      // print illegal order and quit program
-      printErrorMessage(2);
-      exit(2);
+      printErrorMessage(ILLEGAL_ORDER);
+      exit(ILLEGAL_ORDER);
     }
   }
-  else if ( charsInString == 2) {
+  else if (charsInString == 2) {
     // three cases: {hours and minutes}, {minutes and seconds}, and {hours and seconds}
     if (h == 'h' && m == 'm') {
       sscanf (argv[1], "%d%*c%d%*c", &hours, &minutes);
@@ -53,11 +57,11 @@ int main (int argc, char *argv[]) {
     }
     // well, they also may have used illegal chars
     else {
-      printErrorMessage(1);
-      exit(1);
+      printErrorMessage(ILLEGAL_CHARACTER);
+      exit(ILLEGAL_CHARACTER);
     }
   }
-  else if ( charsInString == 1) {
+  else if (charsInString == 1) {
     // three cases: {hours}, {minutes}, and {seconds}
     if (h == 'h') {
       sscanf (argv[1], "%d%*c", &hours);
@@ -69,18 +73,17 @@ int main (int argc, char *argv[]) {
       sscanf (argv[1], "%d%*c", &seconds);
     }
     else {
-      // error code 1 means illegal character
-      printErrorMessage(1);
-      exit(1);
+      printErrorMessage(ILLEGAL_CHARACTER);
+      exit(ILLEGAL_CHARACTER);
     }
   }
   else {
-    printErrorMessage(2);
-    exit(2);
+    printErrorMessage(ILLEGAL_ORDER);
+    exit(ILLEGAL_ORDER);
   }
 
   printf ("shutting down in");
-  // if any are greater than 0 i.e. non-zero
+
   if (hours) {
     printf("\n\t%d hour%s", hours, hours == 1 ? "" : "s");
   }
@@ -108,22 +111,25 @@ int main (int argc, char *argv[]) {
 
   strcat(command, number);
 
-  // debug printing command
-  //printf("%s\n", command);
-  system(command);
+  if (DEBUG) {
+    printf("%s\n", command);
+  }
+  else {
+    system(command);
+  }
 
   return 0;
 }
 
 void printErrorMessage(int code) {
   switch (code) {
-    case 0:
+    case BAD_ARGUMENTS:
       printf("Error - must pass one argument.\n\tex:\tdie 40m\n");
       break;
-    case 1:
+    case ILLEGAL_CHARACTER:
       printf("Error - illegal character. Must use h, m, and/or s.\n");
       break;
-    case 2:
+    case ILLEGAL_ORDER:
       printf("Error - must format in decreasing order (h, m, then s) preceded by a number,\n\tex:\tdie 1h30m40s\n\t\tdie 30h25s\n\t\tdie 40s\n");
       break;
     default:
