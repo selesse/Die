@@ -2,29 +2,62 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BAD_ARGUMENTS 1
-#define ILLEGAL_CHARACTER 2
-#define ILLEGAL_ORDER 3
+#define BAD_ARGUMENTS        1
+#define ILLEGAL_CHARACTER    2
+#define ILLEGAL_ORDER        3
+#define UNABLE_TO_EXECUTE_PS 4
+#define COULD_NOT_FIND_PID   5
+#define ABORT_SUCCESS        6
+#define ABORT_FAILURE        7
 #define DEBUG 0
 
-void printErrorMessage(int code);
+int printErrorMessage(int code);
 
 int main (int argc, char *argv[]) {
   if (argc != 2) {
-    printErrorMessage(BAD_ARGUMENTS);
-    exit(BAD_ARGUMENTS);
+    return printErrorMessage(BAD_ARGUMENTS);
   }
 
   if (!strcmp(argv[1], "abort")) {
-    printf("Abort!\n");
+    int abortStatus;
+    printf("Aborting!\n");
     #ifdef __WIN32
-    system("shutdown -a");
+    abortStatus = system("shutdown -a");
     #elif defined __unix__
-    system("sudo shutdown -c");
+    abortStatus = system("sudo shutdown -c");
     #else
-    // mac -> need to figure this out
-    system("sudo shutdown ");
+    char buffer[500];
+    FILE* fp;
+
+    // we want to parse the output of our command; need to treat it as a file
+    fp = popen("sudo ps aux | grep \"shutdown\"", "r");
+    if (fp == NULL) {
+      return printErrorMessage(UNABLE_TO_EXECUTE_PS);
+    }
+
+    int pid, scan_success;
+    while (fgets(buffer, sizeof(buffer)-1, fp) !=  NULL) {
+      if (strlen(buffer) > 4 && strncmp("root", buffer, 4) == 0) {
+        scan_success = sscanf(&buffer[4], "%d", &pid);
+        break;
+      }
+    }
+
+    if (scan_success != 1 || pid <= 0) {
+      return printErrorMessage(COULD_NOT_FIND_PID);
+    }
+
+    sprintf(buffer, "sudo kill %d", pid);
+
+    abortStatus = system(buffer);
     #endif
+
+    if (abortStatus == 0) {
+      return printErrorMessage(ABORT_SUCCESS);
+    }
+    else {
+      return printErrorMessage(ABORT_FAILURE);
+    }
     return 0;
   }
 
@@ -40,8 +73,7 @@ int main (int argc, char *argv[]) {
       sscanf (argv[1], "%d%*c%d%*c%d%*c", &hours, &minutes, &seconds);
     }
     else {
-      printErrorMessage(ILLEGAL_ORDER);
-      exit(ILLEGAL_ORDER);
+      return printErrorMessage(ILLEGAL_ORDER);
     }
   }
   else if (charsInString == 2) {
@@ -57,8 +89,7 @@ int main (int argc, char *argv[]) {
     }
     // well, they also may have used illegal chars
     else {
-      printErrorMessage(ILLEGAL_CHARACTER);
-      exit(ILLEGAL_CHARACTER);
+      return printErrorMessage(ILLEGAL_CHARACTER);
     }
   }
   else if (charsInString == 1) {
@@ -73,13 +104,11 @@ int main (int argc, char *argv[]) {
       sscanf (argv[1], "%d%*c", &seconds);
     }
     else {
-      printErrorMessage(ILLEGAL_CHARACTER);
-      exit(ILLEGAL_CHARACTER);
+      return printErrorMessage(ILLEGAL_CHARACTER);
     }
   }
   else {
-    printErrorMessage(ILLEGAL_ORDER);
-    exit(ILLEGAL_ORDER);
+    return printErrorMessage(ILLEGAL_ORDER);
   }
 
   printf ("shutting down in");
@@ -121,7 +150,7 @@ int main (int argc, char *argv[]) {
   return 0;
 }
 
-void printErrorMessage(int code) {
+int printErrorMessage(int code) {
   switch (code) {
     case BAD_ARGUMENTS:
       printf("Error - must pass one argument.\n\tex:\tdie 40m\n");
@@ -132,7 +161,21 @@ void printErrorMessage(int code) {
     case ILLEGAL_ORDER:
       printf("Error - must format in decreasing order (h, m, then s) preceded by a number,\n\tex:\tdie 1h30m40s\n\t\tdie 30h25s\n\t\tdie 40s\n");
       break;
+    case UNABLE_TO_EXECUTE_PS:
+      printf("Error - unable to execute ps; could not kill shutdown.\n");
+      break;
+    case COULD_NOT_FIND_PID:
+      printf("Error - could not find shutdown pid.\n");
+      break;
+    case ABORT_SUCCESS:
+      printf("Successfully aborted shutdown.\n");
+      break;
+    case ABORT_FAILURE:
+      printf("Failed to abort shutdown!\n");
+      break;
     default:
       printf("Error!");
   }
+
+  return code;
 }
