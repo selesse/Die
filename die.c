@@ -24,7 +24,7 @@ int main (int argc, char *argv[]) {
     #ifdef __WIN32
     abortStatus = system("shutdown -a");
     #elif defined __unix__
-    abortStatus = system("sudo shutdown -c");
+    abortStatus = system("shutdown -c");
     #else
     char buffer[500];
     FILE* fp;
@@ -129,11 +129,20 @@ int main (int argc, char *argv[]) {
   char command[30];
 
   // convert the integer number into a string and append it to "shutdown -s -t"
+  #ifdef __WIN32
   sprintf(number, "%d", (int)(hours*60*60 + minutes*60 + seconds));
+  #else
+  int shutdown_time = (int)(hours*60 + minutes + seconds/60);
+  if (shutdown_time == 0) {
+    printf("Unix doesn't support seconds - reverting to 1 minute.\n");
+    shutdown_time = 1;
+  }
+  sprintf(number, "%d", shutdown_time);
+  #endif
   #ifdef __WIN32
   strcpy (command, "shutdown -s -t ");
   #elif defined __unix__
-  strcpy(command, "sudo shutdown -H +");
+  strcpy(command, "shutdown -H +");
   #else
   strcpy(command, "sudo shutdown -s +");
   #endif
@@ -144,7 +153,25 @@ int main (int argc, char *argv[]) {
     printf("%s\n", command);
   }
   else {
+    #ifdef __unix__
+    int fork_id;
+
+    fork_id = fork();
+    if (fork_id == 0) {
+      setsid();
+      FILE* p = popen(command, "r");
+      close(p);
+      return 0;
+    }
+    else {
+      int lastExitCode;
+      while(fork_id != wait(&lastExitCode))
+        continue;
+      return 0;
+    }
+    #else
     system(command);
+    #endif
   }
 
   return 0;

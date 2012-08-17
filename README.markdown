@@ -8,7 +8,7 @@ hours anymore!).
 Using die
 ---------
 
-Place 'die' in your %PATH (or $PATH), then:
+Compile die, then place 'die' in your %PATH (or $PATH), then:
 
     die 3m40s
 
