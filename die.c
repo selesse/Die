@@ -2,20 +2,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BAD_ARGUMENTS        1
-#define ILLEGAL_CHARACTER    2
-#define ILLEGAL_ORDER        3
-#define UNABLE_TO_EXECUTE_PS 4
-#define COULD_NOT_FIND_PID   5
-#define ABORT_SUCCESS        6
-#define ABORT_FAILURE        7
+#define BAD_ARGUMENTS         1
+#define ILLEGAL_CHARACTER     2
+#define ILLEGAL_ORDER         3
+#define UNABLE_TO_EXECUTE_PS  4
+#define COULD_NOT_FIND_PID    5
+#define ABORT_SUCCESS         6
+#define ABORT_FAILURE         7
 #define DEBUG 0
 
-int printErrorMessage(int code);
+int print_error_message(int code);
 
 int main (int argc, char *argv[]) {
   if (argc != 2) {
-    return printErrorMessage(BAD_ARGUMENTS);
+    return print_error_message(BAD_ARGUMENTS);
   }
 
   if (!strcmp(argv[1], "abort")) {
@@ -32,7 +32,7 @@ int main (int argc, char *argv[]) {
     // we want to parse the output of our command; need to treat it as a file
     fp = popen("sudo ps aux | grep \"shutdown\"", "r");
     if (fp == NULL) {
-      return printErrorMessage(UNABLE_TO_EXECUTE_PS);
+      return print_error_message(UNABLE_TO_EXECUTE_PS);
     }
 
     int pid, scan_success;
@@ -44,7 +44,7 @@ int main (int argc, char *argv[]) {
     }
 
     if (scan_success != 1 || pid <= 0) {
-      return printErrorMessage(COULD_NOT_FIND_PID);
+      return print_error_message(COULD_NOT_FIND_PID);
     }
 
     sprintf(buffer, "sudo kill %d", pid);
@@ -53,10 +53,10 @@ int main (int argc, char *argv[]) {
     #endif
 
     if (abortStatus == 0) {
-      return printErrorMessage(ABORT_SUCCESS);
+      return print_error_message(ABORT_SUCCESS);
     }
     else {
-      return printErrorMessage(ABORT_FAILURE);
+      return print_error_message(ABORT_FAILURE);
     }
     return 0;
   }
@@ -73,7 +73,7 @@ int main (int argc, char *argv[]) {
       sscanf (argv[1], "%d%*c%d%*c%d%*c", &hours, &minutes, &seconds);
     }
     else {
-      return printErrorMessage(ILLEGAL_ORDER);
+      return print_error_message(ILLEGAL_ORDER);
     }
   }
   else if (charsInString == 2) {
@@ -89,7 +89,7 @@ int main (int argc, char *argv[]) {
     }
     // well, they also may have used illegal chars
     else {
-      return printErrorMessage(ILLEGAL_CHARACTER);
+      return print_error_message(ILLEGAL_CHARACTER);
     }
   }
   else if (charsInString == 1) {
@@ -104,11 +104,11 @@ int main (int argc, char *argv[]) {
       sscanf (argv[1], "%d%*c", &seconds);
     }
     else {
-      return printErrorMessage(ILLEGAL_CHARACTER);
+      return print_error_message(ILLEGAL_CHARACTER);
     }
   }
   else {
-    return printErrorMessage(ILLEGAL_ORDER);
+    return print_error_message(ILLEGAL_ORDER);
   }
 
   printf ("shutting down in");
@@ -177,7 +177,7 @@ int main (int argc, char *argv[]) {
   return 0;
 }
 
-int printErrorMessage(int code) {
+int print_error_message(int code) {
   switch (code) {
     case BAD_ARGUMENTS:
       printf("Error - must pass one argument.\n\tex:\tdie 40m\n");
