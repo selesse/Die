@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
 
 #define BAD_ARGUMENTS         1
 #define ILLEGAL_CHARACTER     2
@@ -9,6 +11,7 @@
 #define COULD_NOT_FIND_PID    5
 #define ABORT_SUCCESS         6
 #define ABORT_FAILURE         7
+
 #define DEBUG 0
 
 int print_error_message(int code);
@@ -77,7 +80,8 @@ int main (int argc, char *argv[]) {
     }
   }
   else if (charsInString == 2) {
-    // three cases: {hours and minutes}, {minutes and seconds}, and {hours and seconds}
+    // three cases: {hours and minutes}, {minutes and seconds}, and {hours and
+    // seconds}
     if (h == 'h' && m == 'm') {
       sscanf (argv[1], "%d%*c%d%*c", &hours, &minutes);
     }
@@ -160,7 +164,7 @@ int main (int argc, char *argv[]) {
     if (fork_id == 0) {
       setsid();
       FILE* p = popen(command, "r");
-      close(p);
+      fclose(p);
       return 0;
     }
     else {
@@ -186,7 +190,8 @@ int print_error_message(int code) {
       printf("Error - illegal character. Must use h, m, and/or s.\n");
       break;
     case ILLEGAL_ORDER:
-      printf("Error - must format in decreasing order (h, m, then s) preceded by a number,\n\tex:\tdie 1h30m40s\n\t\tdie 30h25s\n\t\tdie 40s\n");
+      printf("Error - must format in decreasing order (h, m, then s) preceded "
+          "by a number,\n\tex:\tdie 1h30m40s\n\t\tdie 30h25s\n\t\tdie 40s\n");
       break;
     case UNABLE_TO_EXECUTE_PS:
       printf("Error - unable to execute ps; could not kill shutdown.\n");
