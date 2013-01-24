@@ -55,12 +55,10 @@ int main (int argc, char *argv[]) {
     abortStatus = system(buffer);
     #endif
 
-    if (abortStatus == 0) {
-      return print_error_message(ABORT_SUCCESS);
-    }
-    else {
+    if (abortStatus != 0) {
       return print_error_message(ABORT_FAILURE);
     }
+    print_error_message(ABORT_SUCCESS);
     return 0;
   }
 
@@ -146,9 +144,9 @@ int main (int argc, char *argv[]) {
   #ifdef __WIN32
   strcpy (command, "shutdown -s -t ");
   #elif defined __unix__
-  strcpy(command, "shutdown -H +");
+  strcpy(command, "sudo shutdown -H +");
   #else
-  strcpy(command, "sudo shutdown -s +");
+  strcpy(command, "sudo shutdown -h +");
   #endif
 
   strcat(command, number);
